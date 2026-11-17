@@ -1,10 +1,9 @@
-
-import Header from './components/Header';
+import Navbar from "./components/Navbar";
 
 const App = () => {
   return (
-    <div>
-      <Header />
+    <div className="min-h-screen bg-[#f5f7f8]">
+      <Navbar />
     </div>
   )
 }
