@@ -1,4 +1,5 @@
 import CurrentWeather from "./components/CurrentWeather";
+import Footer from "./components/Footer";
 import HourlyForecast from "./components/HourlyForecast";
 import Navbar from "./components/Navbar";
 import WeatherDetails from "./components/WeatherDetails";
@@ -34,6 +35,7 @@ const App = () => {
           </p>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
