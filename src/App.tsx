@@ -1,4 +1,5 @@
 import CurrentWeather from "./components/CurrentWeather";
+import Footer from "./components/Footer";
 import HourlyForecast from "./components/HourlyForecast";
 import Navbar from "./components/Navbar";
 import WeatherDetails from "./components/WeatherDetails";
@@ -23,7 +24,18 @@ const App = () => {
           </div>
           
         </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] text-slate-500 font-medium">
+            Weather for the way you live. Forecast data from OpenWeather.
+          </p>
+
+          <p className="text-[10px] text-slate-500 font-medium">
+            All time in PDT . Updated at 10:42 AM
+          </p>
+        </div>
       </main>
+      <Footer />
     </div>
   )
 }
