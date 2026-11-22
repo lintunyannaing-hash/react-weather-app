@@ -1,5 +1,4 @@
 
-// Current weather information
 export interface CurrentWeatherData {
     time: string;
     temperature_2m: number;
@@ -14,7 +13,6 @@ export interface CurrentWeatherData {
     pressure_msl: number;
 }
 
-// Hourly forecast information
 export interface HourlyWeatherData {
     time: string[];
     temperature_2m: number[];
@@ -25,7 +23,6 @@ export interface HourlyWeatherData {
     uv_index: number[];
 }
 
-// Daily forecast information
 export interface DailyWeatherData {
     time: string[];
     weather_code: number[];
@@ -37,7 +34,6 @@ export interface DailyWeatherData {
     uv_index_max: number[];
 }
 
-// Complete weather API response
 export interface WeatherResponse {
     latitude: number;
     longitude: number;
@@ -47,5 +43,4 @@ export interface WeatherResponse {
     daily: DailyWeatherData;
 }
 
-// Temperature unit used by our application
 export type TemperatureUnit = "C" | "F";
