@@ -14,6 +14,7 @@ import {
     Droplets,
     Umbrella,
     MapPin,
+    type LucideIcon,
 } from "lucide-react";
 
 import heroImage from "../assets/heroImage.jpg";
@@ -43,7 +44,7 @@ const getWeatherDescription = (code: number): string => {
 }
 
 // Convert Open-Meteo weather codes into relatable Weather Icons
-const getWeatherIcon = (code: number) => {
+const getWeatherIcon = (code: number): LucideIcon => {
     if (code === 0) return Sun;
     if (code === 1) return Sun;
     if (code === 2) return CloudSun;

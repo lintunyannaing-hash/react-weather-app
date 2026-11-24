@@ -29,12 +29,12 @@ const App = () => {
 
         {data && <CurrentWeather weather={data} />}
 
-        <HourlyForecast />
+        {data && <HourlyForecast weather={data}/>}
         {/* Weekly forecast + Weather details */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
 
           <div className="lg:col-span-5">
-            <WeeklyForecast />
+            {data && <WeeklyForecast weather={data}/>}
           </div>
 
           <div className="lg:col-span-7">

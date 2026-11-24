@@ -1,40 +1,108 @@
 import {
     Sun,
     CloudSun,
-    Moon,
+    Cloud,
+    CloudFog,
+    CloudDrizzle,
+    CloudRain,
+    Snowflake,
+    CloudRainWind,
+    CloudSnow,
+    CloudLightning,
     Droplets,
     ArrowLeft,
     ArrowRight,
     type LucideIcon
 } from "lucide-react";
-import { useRef } from "react";
 
-// Define the structure of each forecast item
-interface HourlyForecastItem{
-    time: string;
-    temperature: number;
-    rainChance: number;
-    windSpeed: number;
-    icon: LucideIcon;
+import { useRef } from "react";
+// type from weather.ts
+import type { WeatherResponse } from "../types/weather";
+
+// Define the components's props
+interface HourlyForecastProps{
+    weather: WeatherResponse;
 };
 
-// --------------- Temporary static weather datas ----------------
-const hourlyData: HourlyForecastItem[] = [
-    { time: 'Now', temperature: 18, rainChance: 0, windSpeed: 14, icon: CloudSun },
-    { time: '11 AM', temperature: 19, rainChance: 10, windSpeed: 14, icon: CloudSun },
-    { time: '12 PM', temperature: 20, rainChance: 5, windSpeed: 10, icon: Sun },
-    { time: '1 PM', temperature: 21, rainChance: 5, windSpeed: 8, icon: Sun },
-    { time: '2 PM', temperature: 21, rainChance: 5, windSpeed: 12, icon: Sun },
-    { time: '3 PM', temperature: 20, rainChance: 10, windSpeed: 21, icon: CloudSun },
-    { time: '4 PM', temperature: 20, rainChance: 10, windSpeed: 20, icon: CloudSun },
-    { time: '5 PM', temperature: 19, rainChance: 10, windSpeed: 18, icon: Sun },
-    { time: '6 PM', temperature: 18, rainChance: 10, windSpeed: 16, icon: CloudSun },
-    { time: '7 PM', temperature: 17, rainChance: 10, windSpeed: 14, icon: Moon },
-];
+// Convert Open-Meteo weather codes into relatable Weather Icons
+const getWeatherIcon = (code: number): LucideIcon => {
+    if (code === 0) return Sun;
+    if (code === 1) return Sun;
+    if (code === 2) return CloudSun;
+    if (code === 3) return Cloud;
 
-const HourlyForecast = () => {
+    if (code >= 45 && code <= 48) return CloudFog;
+    if (code >= 51 && code <= 57) return CloudDrizzle;
+    if (code >= 61 && code <= 67) return CloudRain;
+    if (code >= 71 && code <= 77) return Snowflake;
+    if (code >= 80 && code <= 82) return CloudRainWind;
+    if (code >= 85 && code <= 86) return CloudSnow;
+    if (code >= 95) return CloudLightning;
+
+    return Cloud;
+}
+// Color design for each one
+const getWeatherColor = (code: number): string => {
+    if (code === 0) return "text-yellow-500";
+    if (code === 1) return "text-amber-400";
+    if (code === 2) return "text-orange-400";
+    if (code === 3) return "text-slate-400";
+
+    if (code >= 45 && code <= 48) return "text-gray-400";
+    if (code >= 51 && code <= 57) return "text-sky-400";
+    if (code >= 61 && code <= 67) return "text-blue-500";
+    if (code >= 71 && code <= 77) return "text-cyan-400";
+    if (code >= 80 && code <= 82) return "text-blue-600";
+    if (code >= 85 && code <= 86) return "text-cyan-500";
+    if (code >= 95) return "text-purple-500";
+
+    return "text-slate-400";
+};
+
+const HourlyForecast = ({weather}: HourlyForecastProps) => {
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Find the hourly forecast entry matching the current time
+    // slice method ==> used to get the exact time that match with actual hourly time data
+    // 12:43 => 12
+    const currentHourIndex = weather.hourly.time.findIndex(
+        (time) => time.slice(0, 13) === weather.current.time.slice(0, 13)
+    );
+
+    // Check exact item is exist or not that match with current time
+    if(currentHourIndex !== -1){
+        console.log("Currently hourly forecast index:", currentHourIndex);
+    } else {
+        console.log("No matching hourly forecast found!");
+    }
+
+    // If no exact match is found, start from the first avaliable entry
+    const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
+
+    // Get the next 24 hourly forecast entries
+    const hourlyData = weather.hourly.time
+        .slice(startIndex, startIndex + 24)
+        .map((time, index) => ({
+            time,
+            icon: getWeatherIcon(weather.hourly.weather_code[startIndex + index]),
+            weatherCode: weather.hourly.weather_code[startIndex + index],
+            temperature: weather.hourly.temperature_2m[startIndex + index],
+            rainChance: weather.hourly.precipitation_probability[startIndex + index] ?? 0,
+            windSpeed: weather.hourly.wind_speed_10m[startIndex + index],
+        }));
+
+    // Format API's local forecast time
+    const formatHour = (time: string, index: number) => {
+        if(index === 0) return "Now";
+
+        const date = new Date(`${time.slice(0, 16)}:00Z`);
+
+        return new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            timeZone: "UTC",
+        }).format(date);
+    }
 
     // Scroll forecast items left or right
     const handleScroll = (direction: 'left' | 'right') => {
@@ -102,8 +170,8 @@ const HourlyForecast = () => {
                 [&::-webkit-scrollbar-thumb]:bg-slate-300"
         >
             
-            <div className="grid grid-flow-col auto-cols-[76px] sm:auto-cols-[84px] gap-1
-                xl:grid-flow-row xl:grid-cols-10 xl:auto-cols-auto">
+            <div className="grid w-max min-w-full grid-flow-col grid-rows-1 auto-cols-[76px]
+                sm:auto-cols-[84px] xl:auto-cols-[90px] gap-1">
 
                 {hourlyData.map((hour, index) => {
                     const WeatherIcon = hour.icon;
@@ -119,24 +187,24 @@ const HourlyForecast = () => {
                         >
                             {/* Time */}
                             <span className="text-[9px] text-slate-500">
-                                {hour.time}
+                                {formatHour(hour.time, index)}
                             </span>
 
                             {/* Weather icon */}
                             <WeatherIcon
                                 size={16}
                                 strokeWidth={1.5}
-                                className="text-amber-500"
+                                className={getWeatherColor(hour.weatherCode)}
                             />
 
                             {/* Temperature */}
                             <span className="text-base font-medium text-[#294454]">
-                                {hour.temperature}°
+                                {Math.round(hour.temperature)}°
                             </span>
 
                             {/* Rain Probability */}
                             <div className="flex items-center gap-1">
-                                <Droplets size={12} />
+                                <Droplets size={12} className="text-sky-400"/>
                                 <span className="text-xs text-slate-400">{hour.rainChance}%</span>
                             </div>
 
