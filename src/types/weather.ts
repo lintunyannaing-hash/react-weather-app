@@ -38,6 +38,7 @@ export interface WeatherResponse {
     latitude: number;
     longitude: number;
     timezone: string;
+    utc_offset_seconds: number,
     current: CurrentWeatherData;
     hourly: HourlyWeatherData;
     daily: DailyWeatherData;

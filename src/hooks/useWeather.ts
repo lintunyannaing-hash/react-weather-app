@@ -37,12 +37,16 @@ export const useWeather = (
                     controller.signal
                 );
 
+                // testing
+                console.log(data);
+
                 setWeatherState({
                     data,
                     isLoading: false,
                     error: null,
                 })
             } catch(error) {
+                
                 if(controller.signal.aborted){
                     return;
                 }
