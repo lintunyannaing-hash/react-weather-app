@@ -28,6 +28,7 @@ export const getWeatherData = async (
         "wind_direction_10m",
         "wind_gusts_10m",
         "pressure_msl",
+        "dew_point_2m",
     ].join(","),
 
     hourly: [
@@ -37,6 +38,7 @@ export const getWeatherData = async (
         "weather_code",
         "visibility",
         "uv_index",
+        "pressure_msl",
     ].join(","),
 
     daily: [
@@ -51,7 +53,6 @@ export const getWeatherData = async (
 
     timezone: "auto",
     forecast_days: "7",
-    utcOffsetSeconds: "number",
     });
 
     const response = await fetch(

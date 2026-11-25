@@ -20,7 +20,6 @@ interface DailyForecastProps{
     weather: WeatherResponse;
 };
 
-/* -------------------------------------- Need to Change with this part -------------------------------------- */
 // Convert Open-Meteo weather codes into relatable Weather Icons
 const getWeatherIcon = (code: number): LucideIcon => {
     if (code === 0) return Sun;
@@ -55,8 +54,6 @@ const getWeatherColor = (code: number): string => {
 
     return "text-slate-400";
 };
-
-/* ---------------------------------------------------------------------------- */
 
 const WeeklyForecast = ({weather}: DailyForecastProps) => {
 
@@ -131,9 +128,6 @@ const WeeklyForecast = ({weather}: DailyForecastProps) => {
 
             {/* Daily forecast */}
             <div className="space-y-3">
-
-                
-                
 
                 {weeklyData.map((item, index) => {
                     

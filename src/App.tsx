@@ -38,7 +38,7 @@ const App = () => {
           </div>
 
           <div className="lg:col-span-7">
-            <WeatherDetails />
+            {data && <WeatherDetails weather={data}/>}
           </div>
           
         </div>

@@ -11,6 +11,7 @@ export interface CurrentWeatherData {
     wind_direction_10m: number;
     wind_gusts_10m: number;
     pressure_msl: number;
+    dew_point_2m: number;
 }
 
 export interface HourlyWeatherData {
@@ -21,6 +22,7 @@ export interface HourlyWeatherData {
     weather_code: number[];
     visibility: number[];
     uv_index: number[];
+    pressure_msl: number[];
 }
 
 export interface DailyWeatherData {
