@@ -37,23 +37,7 @@ const getWeatherIcon = (code: number): LucideIcon => {
 
     return Cloud;
 }
-// Color design for each one
-const getWeatherColor = (code: number): string => {
-    if (code === 0) return "text-yellow-500";
-    if (code === 1) return "text-amber-400";
-    if (code === 2) return "text-orange-400";
-    if (code === 3) return "text-slate-400";
 
-    if (code >= 45 && code <= 48) return "text-gray-400";
-    if (code >= 51 && code <= 57) return "text-sky-400";
-    if (code >= 61 && code <= 67) return "text-blue-500";
-    if (code >= 71 && code <= 77) return "text-cyan-400";
-    if (code >= 80 && code <= 82) return "text-blue-600";
-    if (code >= 85 && code <= 86) return "text-cyan-500";
-    if (code >= 95) return "text-purple-500";
-
-    return "text-slate-400";
-};
 
 const WeeklyForecast = ({weather}: DailyForecastProps) => {
 

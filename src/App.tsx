@@ -7,9 +7,25 @@ import WeatherDetails from "./components/WeatherDetails";
 import WeeklyForecast from "./components/WeeklyForecast";
 
 import { useWeather } from "./hooks/useWeather";
+import { useAirQuality } from "./hooks/useAirQuality";
+
+// Default location for San Franciso
+const DEFAULT_LATITUDE = 37.7749;
+const DEFAULT_LONGITUDE = -122.4149;
 
 const App = () => {
+
+  // Weather State
   const { data, isLoading, error } = useWeather();
+
+  // Air quality state
+  const {
+      data: airQualityData,
+      isLoading: isAirQualityLoading,
+      error: airQualityError,
+  } = useAirQuality(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
+
+
   return (
     <div className="min-h-screen bg-[#f5f7f8]">
       <Navbar />
@@ -38,7 +54,7 @@ const App = () => {
           </div>
 
           <div className="lg:col-span-7">
-            {data && <WeatherDetails weather={data}/>}
+            {data && <WeatherDetails weather={data} airQuality={airQualityData}/>}
           </div>
           
         </div>

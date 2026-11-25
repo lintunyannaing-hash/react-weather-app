@@ -9,19 +9,29 @@ import {
 } from "lucide-react";
 
 import type { WeatherResponse } from "../types/weather";
-import { useState } from "react";
+import type { AirQualityResponse } from "../types/airQuality";
 
 interface WeatherDetailsProps{
     weather: WeatherResponse;
-}
+    airQuality: AirQualityResponse | null;
+};
 
 interface UVProgressBarProps{
     bars: number;
     color: string;
     advice: string;
-}
+};
 
-const WeatherDetails = ({weather}: WeatherDetailsProps) => {
+interface AirQualityBarProps{
+    Bars: number;
+    Status: string;
+    Color: string;
+    Advice: string;
+    bg_status: string,
+    text_status: string;
+};
+
+const WeatherDetails = ({weather, airQuality}: WeatherDetailsProps) => {
 
     // Find hourly forecast entry matching the current time
     const currentHourIndex = weather.hourly.time.findIndex(
@@ -55,16 +65,18 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
             "West", "West-Northwest", "Northwest", "North-Northwest"
         ];
 
-        const index = Math.round(degree / 22.5) % 16;
+        const normalizedDegree = ((degree % 360) + 360) % 360;
+
+        const index = Math.round(normalizedDegree / 22.5) % 16;
         return windDirectionsArr[index];
     };
 
     // UV Informations
     
-    const uvIndex = weather.hourly.uv_index[hourlyIndex] ?? 0;
+    const uvIndex = weather.hourly.uv_index[hourlyIndex];
 
     const uvLevel = (uv: number): string => {
-        if(uv < 0) return "Invalid UV Index";
+        if(!Number.isFinite(uv) || uv < 0) return "Invalid UV Index";
 
         const value = Math.floor(uv);
 
@@ -130,13 +142,15 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
 
     // Humidity section
     const humidity = weather.current.relative_humidity_2m;
+    // Humidity Progress bar
+    const humidityProgress = Math.min(100, Math.max(0, humidity));
     // dew point
-    const dewPoint = weather.current.dew_point_2m;
+    const dewPoint = Math.round(weather.current.dew_point_2m);
 
     // Now: They are calculated based on "Celsius(C)"
     const getDewPointStatus = (point: number): string => {
-        if(point === null || point === undefined || point < 0){
-            return "Invalid Dew Point!";
+        if(!Number.isFinite(point)){
+            return "Unavailable!";
         }
 
         if(point < 10){ // 50 F
@@ -148,7 +162,87 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
         } else { // 20 C above || 68 F above
             return "Sticky & Oppressive";
         }
-    }
+    };
+    // -------------------------------------------------------------------------
+    // Air quality
+    const airQualityIndex = airQuality?.current.us_aqi;
+    const PM2_5 = airQuality?.current.pm2_5;
+
+    // For Air Quality Progress Bar
+    const getAQIConfig = (aqi: number| null | undefined): AirQualityBarProps => {
+        if(!Number.isFinite(aqi) || aqi < 0){
+            return{
+                Bars: 0,
+                Status: "none",
+                Color: "bg-slate-200",
+                Advice: "Invalid Air Quality Index!",
+                bg_status: "bg-slate-50",
+                text_status: "text-slate-700"
+            };
+        }
+
+        switch(true){
+            case (aqi <= 50):
+                return{
+                    Bars: 1,
+                    Status: "Good",
+                    Color: "bg-emerald-400",
+                    Advice: "Enjoy outdoor activities, walking, running, and exercise",
+                    bg_status: "bg-emerald-50",
+                    text_status: "text-emerald-700",
+                };
+            case (aqi <= 100):
+                return{
+                    Bars: 2,
+                    Status: "Moderate",
+                    Color: "bg-amber-400",
+                    Advice: "Most people can enjoy outdoor activities except sensitive people",
+                    bg_status: "bg-amber-50",
+                    text_status: "text-amber-700",
+                };
+            case (aqi <= 150):
+                return{
+                    Bars: 3,
+                    Status: "Unhealthy for Sensitive Groups",
+                    Color: "bg-orange-500",
+                    Advice: "Children, older adults, and people with heart or lung conditions should take extra care",
+                    bg_status: "bg-orange-50",
+                    text_status: "text-orange-700",
+                };
+            case (aqi <= 200):
+                return{
+                    Bars: 4,
+                    Status: "Unhealthy",
+                    Color: "bg-rose-500",
+                    Advice: "Reduce prolonged outdoor exercise",
+                    bg_status: "bg-rose-50",
+                    text_status: "text-rose-700",
+                };
+            case (aqi <= 300):
+                return{
+                    Bars: 5,
+                    Status: "Very Unhealthy",
+                    Color: "bg-rose-600",
+                    Advice: "Reduce prolonged outdoor exercise",
+                    bg_status: "bg-rose-100",
+                    text_status: "text-rose-800",
+                };
+            default:
+                return{
+                    Bars: 5,
+                    Status: "Hazardous",
+                    Color: "bg-purple-500",
+                    Advice: "Avoid all outdoor physical activity. Stay indoors and keep activity levels low",
+                    bg_status: "bg-purple-50",
+                    text_status: "text-purple-700",
+                };
+            
+        }
+    };
+
+    const { Bars, Status, Color, Advice, bg_status, text_status }: AirQualityBarProps = getAQIConfig(airQualityIndex);
+
+    // --------------------------------------------------------------------------
 
     // Sunrise and Sunset Section
     // ----------------------------------------------------------------
@@ -187,11 +281,11 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
     // -------------------------------------------------------------------------
 
     // visibility: convert meters into kilometers
-    const visibility = weather.hourly.visibility[hourlyIndex] / 1000;
+    const visibility = Number(weather.hourly.visibility[hourlyIndex] / 1000).toFixed(1);
 
     const getVisibilityStatus = (value: number): string => {
-        if(value === null || value === undefined || value < 0){
-            return "Invalid visibility status";
+        if(!Number.isFinite(value) || value < 0){
+            return "Unavailable";
         };
 
         if (value < 1){
@@ -238,9 +332,6 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
 
     const status = getPressureStatus(currentPressure, prev3hPressure);
 
-
-
-
   return (
     <section className="space-y-3">
 
@@ -259,9 +350,9 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 
             {/* 1. Wind */}
-            <article className="flex min-[190px] flex-col rounded-xl bg-white p-4">
+            <article className="flex min-h-[190px] flex-col rounded-xl bg-white p-4">
 
-                <div className="flex items-center jusitify-between">
+                <div className="flex items-center justify-between">
                     <Wind size={15} className="text-slate-400" />
                     <span className="font-medium text-slate-500 text-[10px]">
                         WIND
@@ -289,19 +380,21 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
                         </p>
                     </div>
 
+                    {/* -------------------- Need to make this Arrow => active */}
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-sky-200">
                         <ArrowLeft
                             size={19}
                             className="text-sky-600"
                         />
                     </div>
+                    {/* ----------------------------------------------------------------- */}
                 </div>
             </article>
 
             {/* UV Index */}
             <article className="flex min-h-[190px] flex-col rounded-xl bg-white p-4">
 
-                <div className="flex items-center jusitify-between">
+                <div className="flex items-center justify-between">
                     <Sun size={15} className="text-slate-400" />
                     <span className="font-medium text-slate-500 text-[10px]">
                         UV INDEX
@@ -338,7 +431,7 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
             {/* Humidity */}
             <article className="flex min-h-[190px] flex-col rounded-xl bg-white p-4">
 
-                <div className="flex items-center jusitify-between">
+                <div className="flex items-center justify-between">
                     <Droplets size={15} className="text-slate-400" />
                     <span className="font-medium text-slate-500 text-[10px]">
                         HUMIDITY
@@ -353,7 +446,7 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
                 <div className="mt-4 h-[3px] w-full rounded-full bg-slate-100">
                     <div 
                         className="h-full rounded-full bg-sky-500"
-                        style={{ width: `${humidity}%`}}
+                        style={{ width: `${humidityProgress}%`}}
                     ></div>
                 </div>
 
@@ -369,7 +462,7 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
             {/* Air Quality */}
             <article className="flex min-h-[190px] flex-col rounded-xl bg-white p-4">
 
-                <div className="flex items-center jusitify-between">
+                <div className="flex items-center justify-between">
                     <Leaf size={15} className="text-slate-400" />
                     <span className="font-medium text-slate-500 text-[10px]">
                         AIR QUALITY
@@ -378,36 +471,43 @@ const WeatherDetails = ({weather}: WeatherDetailsProps) => {
 
                 <div className="mt-4 flex items-center justify-between">
                     <span className="text-3xl font-normal text-[#294454]">
-                        28
+                        {airQualityIndex}
                     </span>
 
-                    <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] text-emerald-700">
-                        Good
+                    <span 
+                        className={`rounded-full px-2 py-1 text-[10px] ${bg_status} ${text_status}`}
+                    >
+                        {Status}
                     </span>
                 </div>
 
                 {/* Air quality indicator */}
                 <div className="mt-4 grid grid-cols-5 gap-1">
-                    <div className="h-[3px] rounded-full bg-emerald-500" />
-                    <div className="h-[3px] rounded-full bg-emerald-500" />
-                    <div className="h-[3px] rounded-full bg-slate-200" />
-                    <div className="h-[3px] rounded-full bg-slate-200" />
-                    <div className="h-[3px] rounded-full bg-slate-200" />
+                    {[1, 2, 3, 4, 5].map((step) => (
+                        <div
+                            key={step}
+                            className={`h-[3px] rounded-full transition-colors duration-300
+                                ${
+                                    step <= Bars ? Color: "bg-slate-200"
+                                }
+                            `}
+                        ></div>
+                    ))}
                 </div>
 
                 <p className="font-medium text-[12px] text-[#294454] mt-5">
-                    A good day to spend some time outdoors.
+                    {Advice}
                 </p>
 
                 <p className="mt-1 text-[10px] text-slate-400">
-                    US AQI · PM2.5
+                    US AQI · PM2.5: {PM2_5?.toFixed(1) ?? "--"} µg/m³
                 </p>  
             </article>
 
             {/* 5. Sunrise and Sunset */}
             <article className="flex min-h-[190px] flex-col rounded-xl bg-white p-4">
 
-                <div className="flex items-center jusitify-between">
+                <div className="flex items-center justify-between">
                     <Sunrise size={15} className="text-slate-400" />
                     <span className="font-medium text-slate-500 text-[10px]">
                         SUNRISE & SUNSET
