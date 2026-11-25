@@ -4,32 +4,74 @@ import {
     Cloud,
     CloudRain,
     CloudDrizzle,
+    CloudFog,
+    Snowflake,
+    CloudRainWind,
+    CloudSnow,
+    CloudLightning,
     CalendarDays,
     type LucideIcon,
 } from "lucide-react";
 
-// Forecast data structure
-interface DailyForecastItem{
-    day: string;
-    date: string;
-    condition: LucideIcon;
-    rainChance: number;
-    minTemp: number;
-    maxTemp: number;
+import type { WeatherResponse } from "../types/weather";
+
+// Define component's props
+interface DailyForecastProps{
+    weather: WeatherResponse;
 };
 
-// Temporary Weather Data
-const weeklyData: DailyForecastItem[] = [
-    { day: 'Today', date: 'Sep 15', condition: CloudSun, rainChance: 0, minTemp: 14, maxTemp: 21 },
-    { day: 'Wed', date: 'Sep 16', condition: Sun, rainChance: 5, minTemp: 15, maxTemp: 23 },
-    { day: 'Thu', date: 'Sep 17', condition: Sun, rainChance: 5, minTemp: 16, maxTemp: 24 },
-    { day: 'Fri', date: 'Sep 18', condition: CloudSun, rainChance: 15, minTemp: 15, maxTemp: 22 },
-    { day: 'Sat', date: 'Sep 19', condition: Cloud, rainChance: 20, minTemp: 14, maxTemp: 20 },
-    { day: 'Sun', date: 'Sep 20', condition: CloudRain, rainChance: 65, minTemp: 14, maxTemp: 18 },
-    { day: 'Mon', date: 'Sep 21', condition: CloudDrizzle, rainChance: 30, minTemp: 13, maxTemp: 19 },
-];
+// Convert Open-Meteo weather codes into relatable Weather Icons
+const getWeatherIcon = (code: number): LucideIcon => {
+    if (code === 0) return Sun;
+    if (code === 1) return Sun;
+    if (code === 2) return CloudSun;
+    if (code === 3) return Cloud;
 
-const WeeklyForecast = () => {
+    if (code >= 45 && code <= 48) return CloudFog;
+    if (code >= 51 && code <= 57) return CloudDrizzle;
+    if (code >= 61 && code <= 67) return CloudRain;
+    if (code >= 71 && code <= 77) return Snowflake;
+    if (code >= 80 && code <= 82) return CloudRainWind;
+    if (code >= 85 && code <= 86) return CloudSnow;
+    if (code >= 95) return CloudLightning;
+
+    return Cloud;
+}
+
+
+const WeeklyForecast = ({weather}: DailyForecastProps) => {
+
+    // Transform Open-Meteo daily arrays into forecast objects
+    const weeklyData = weather.daily.time.map((date, index) => {
+
+        const forecastDate = new Date(`${date}T12:00:00Z`);
+
+        const day = index === 0
+            ? "Today"
+            : new Intl.DateTimeFormat("en-US", {
+                weekday: "short",
+                timeZone: "UTC",
+            }).format(forecastDate);
+
+        const formattedDate = new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+            timeZone: "UTC",
+        }).format(forecastDate);
+
+        const weatherCode = weather.daily.weather_code[index];
+
+        return{
+            day,
+            date: formattedDate,
+            condition: getWeatherIcon(weatherCode),
+            weatherCode,
+            rainChance: weather.daily.precipitation_probability_max[index] ?? 0,
+            minTemp: Math.round(weather.daily.temperature_2m_min[index]),
+            maxTemp: Math.round(weather.daily.temperature_2m_max[index]),
+        }
+    });
+
     {/* Find the lowest and highest temperatures of the week */}
 
     const minWeeklyTemp = Math.min(...weeklyData.map(item => item.minTemp));
@@ -70,9 +112,6 @@ const WeeklyForecast = () => {
 
             {/* Daily forecast */}
             <div className="space-y-3">
-
-                
-                
 
                 {weeklyData.map((item, index) => {
                     
